@@ -1,0 +1,58 @@
+#include <avr/io.h>
+#include <util/delay.h>
+#define F_CPU 1000000UL
+#include <avr/interrupt.h>
+
+#define LED PORTC
+#define LEDDir DDRC
+
+ISR(INT0_vect)
+{
+      Int i=0;
+      PORTC = 0b11111100;
+      For (i=0; i<3; i++);
+      {
+        _delay_ms(1000)
+        PORTC = (PORTC<<2) | 0b0000111
+      }
+      _delay_ms(1000);
+      PORTC = 0xFF;
+}
+
+ISR(INT1_vect)
+{   Int i=0;
+    For (i=0; i<3; i++);
+    {
+      LED = 0xF0;_delay_ms(1000)
+      LED = 0x0F;_delay_ms(1000)
+    }
+}
+
+Int main()
+{
+        LEDDir = 0xFF;
+        LED = 0b1111110;
+
+        DDRD = 0x00;
+        PORTD = 0xFF;
+
+        GICR = 1<<INT0 | 1<<INT1;
+        MCUCR = 1<<ISC01 | 1<<IS00 | 1<<ISC10 | 1<<ISC11;
+
+        Sei();
+
+        While(1)
+        {
+          While(1)
+          {
+            _delay_ms(1000);
+            PORTC = (PORTC<<1) | 0b0000001;
+            If(PORTC == 0b1111111)
+            {
+              _delay_ms(1000);
+              PORTC = 0b1111110;
+              Break;
+            }
+          }
+        }
+}
